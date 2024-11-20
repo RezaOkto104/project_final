@@ -11,16 +11,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-<<<<<<< HEAD
-      title: 'project',
-=======
-      title: 'Judul',
->>>>>>> b2dbe67ffe0cabc97ea4293aabd190a99c5bd59a
+      title: 'Labro',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Ini project final'),
+      home: const MyHomePage(title: 'project final'),
     );
   }
 }
