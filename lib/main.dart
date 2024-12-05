@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:project_final/login_page.dart';
-import 'keterangan_lab.dart';
 import 'list.dart';
 import 'loading_screen.dart';
 import 'peminjaman_form.dart';
@@ -16,6 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Aplikasi Peminjaman Laboratorium',
+
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
