@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+// ignore: unnecessary_import
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:project_final/login_page.dart';
 import 'list.dart';
 import 'loading_screen.dart';
 import 'peminjaman_form.dart';
-import 'riwayat.dart';
+import 'riwayat_page.dart';
 import 'dashboard.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  // Inisialisasi databaseFactory
+  databaseFactory = databaseFactoryFfi;
+
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -14,8 +22,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Aplikasi Peminjaman Laboratorium',
-
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),

@@ -1,8 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:project_final/dashboard.dart';
+import 'package:project_final/dashboard.dart'; // Gantilah dengan dashboard biasa
+import 'package:project_final/dashboard_admin.dart'; // Gantilah dengan dashboard admin
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  void _login() {
+    String username = _usernameController.text.trim();
+    String password = _passwordController.text.trim();
+
+    // Verifikasi login berdasarkan username dan password
+    if (username == 'user' && password == 'user') {
+      // Navigasi ke DashboardUser
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              const DashboardScreen(), // Halaman Dashboard biasa
+        ),
+      );
+    } else if (username == 'admin' && password == 'admin') {
+      // Navigasi ke DashboardAdmin
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              const DashboardAdmin(), // Halaman Dashboard Admin
+        ),
+      );
+    } else {
+      // Menampilkan pesan jika login gagal
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Login Gagal'),
+            content: const Text('Username atau password salah.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Tutup'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +101,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   TextField(
+                    controller: _usernameController,
                     decoration: InputDecoration(
                       labelText: 'NIM/NIP',
                       labelStyle: TextStyle(color: Colors.grey[600]),
@@ -60,6 +115,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: _passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: 'Password',
@@ -76,15 +132,7 @@ class LoginPage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Navigasi ke LabListScreen
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const DashboardScreen(),
-                          ),
-                        );
-                      },
+                      onPressed: _login, // Memanggil fungsi login
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF8A4AFF),
                         shape: RoundedRectangleBorder(

@@ -88,12 +88,12 @@ class LabInfoScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    InfoRow(
+                    const InfoRow(
                       title: 'Jumlah Maksimal Peserta',
                       value: '35', // Ganti dengan data yang sesuai jika ada
                     ),
                     const SizedBox(height: 10),
-                    InfoRow(
+                    const InfoRow(
                       title: 'Jumlah fasilitas',
                       value: '35', // Ganti dengan data yang sesuai jika ada
                     ),

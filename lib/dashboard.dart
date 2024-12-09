@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'list.dart'; // Pastikan untuk mengimpor file yang sesuai
-import 'riwayat.dart'; // Pastikan untuk mengimpor file yang sesuai
+import 'riwayat_page.dart'; // Pastikan untuk mengimpor file yang sesuai
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -11,6 +11,19 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Dashboard'),
         backgroundColor: Colors.blueAccent,
+        leading: Padding(
+          padding:
+              const EdgeInsets.all(8.0), // Menambahkan padding untuk estetika
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pop(context); // Kembali ke halaman sebelumnya
+            },
+            child: Image.asset(
+              'assets/logo.png',
+              fit: BoxFit.contain, // Mengatur agar gambar sesuai ukuran
+            ),
+          ),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

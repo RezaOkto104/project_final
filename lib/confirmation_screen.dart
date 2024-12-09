@@ -1,44 +1,35 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; // Import untuk Timer
-import 'riwayat.dart'; // Pastikan ini adalah file yang benar
+import 'database/database_service.dart'; // Import database helper
+import 'database/riwayat.dart'; // Import model Riwayat
+import 'riwayat_page.dart'; // Import halaman Riwayat
 
 class ConfirmationScreen extends StatefulWidget {
-  final String namaLengkap;
-  final String nimNikNip;
-  final String namaDosen;
-  final String tanggal;
-  final String jamMulai;
-  final String jamSelesai;
-  final String jumlahPeserta;
-  final String? selectedRuangan;
-  final String? selectedTandaPengenal;
+  final Riwayat riwayat; // Menerima objek Riwayat
+  final bool autoNavigate; // Tambahkan parameter untuk mode navigasi otomatis
 
   const ConfirmationScreen({
-    super.key,
-    required this.namaLengkap,
-    required this.nimNikNip,
-    required this.namaDosen,
-    required this.tanggal,
-    required this.jamMulai,
-    required this.jamSelesai,
-    required this.jumlahPeserta,
-    required this.selectedRuangan,
-    required this.selectedTandaPengenal,
-  });
+    Key? key,
+    required this.riwayat,
+    this.autoNavigate = false, // Default tidak otomatis
+  }) : super(key: key);
 
   @override
   _ConfirmationScreenState createState() => _ConfirmationScreenState();
 }
 
 class _ConfirmationScreenState extends State<ConfirmationScreen> {
-  int _countdown = 7; // Waktu countdown mulai dari 7 detik
+  int _countdown = 5; // Countdown hanya jika navigasi otomatis
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    // Mulai countdown
-    _startCountdown();
+
+    if (widget.autoNavigate) {
+      _saveToDatabase(); // Simpan data ke database jika dari form
+      _startCountdown(); // Mulai countdown untuk navigasi otomatis
+    }
   }
 
   void _startCountdown() {
@@ -57,9 +48,15 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     });
   }
 
+  Future<void> _saveToDatabase() async {
+    final DatabaseHelper dbHelper = DatabaseHelper();
+    await dbHelper
+        .insertRiwayat(widget.riwayat); // Simpan objek Riwayat ke database
+  }
+
   @override
   void dispose() {
-    _timer?.cancel(); // Hentikan timer saat widget dibuang
+    _timer?.cancel(); // Hentikan timer jika widget dibuang
     super.dispose();
   }
 
@@ -69,6 +66,15 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
       appBar: AppBar(
         title: const Text('Konfirmasi Peminjaman'),
         backgroundColor: Colors.blueAccent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const RiwayatPage()),
+            );
+          },
+        ),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -91,27 +97,28 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                     color: Colors.white),
               ),
               const SizedBox(height: 16.0),
-              _buildDataRow('Nama Lengkap:', widget.namaLengkap),
-              _buildDataRow('NIM/NIK/NIP:', widget.nimNikNip),
-              _buildDataRow('Nama Dosen:', widget.namaDosen),
-              _buildDataRow('Tanggal:', widget.tanggal),
-              _buildDataRow('Jam Mulai:', widget.jamMulai),
-              _buildDataRow('Jam Selesai:', widget.jamSelesai),
-              _buildDataRow('Jumlah Peserta:', widget.jumlahPeserta),
+              _buildDataRow('Nama Lengkap:', widget.riwayat.namaLengkap),
+              _buildDataRow('NIM/NIK/NIP:', widget.riwayat.nim),
+              _buildDataRow('Nama Dosen:', widget.riwayat.namaDosen),
+              _buildDataRow('Tanggal:', widget.riwayat.tanggal),
+              _buildDataRow('Jam Mulai:', widget.riwayat.jamMulai),
+              _buildDataRow('Jam Selesai:', widget.riwayat.jamSelesai),
               _buildDataRow(
-                  'Nama Ruangan:', widget.selectedRuangan ?? 'Belum dipilih'),
-              _buildDataRow('Tanda Pengenal:',
-                  widget.selectedTandaPengenal ?? 'Belum dipilih'),
+                  'Jumlah Peserta:', widget.riwayat.jumlahPeserta.toString()),
+              _buildDataRow('Nama Ruangan:', widget.riwayat.ruangan),
+              _buildDataRow('Tanda Pengenal:', widget.riwayat.tandaPengenal),
               const SizedBox(height: 20.0),
               const Text(
                 'Terima kasih telah mengisi formulir peminjaman.',
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
               const SizedBox(height: 10.0),
-              Text(
-                'Anda akan diarahkan ke halaman riwayat dalam $_countdown detik.',
-                style: const TextStyle(fontSize: 16, color: Colors.white70),
-              ),
+              if (widget
+                  .autoNavigate) // Hanya tampilkan countdown jika otomatis
+                Text(
+                  'Anda akan diarahkan ke halaman riwayat dalam $_countdown det ik.',
+                  style: const TextStyle(fontSize: 16, color: Colors.white70),
+                ),
             ],
           ),
         ),

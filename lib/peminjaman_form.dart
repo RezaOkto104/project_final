@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'confirmation_screen.dart';
+import 'confirmation_screen.dart'; // Import ConfirmationScreen
+import 'database/database_service.dart'; // Import database helper
+import 'database/riwayat.dart'; // Import model Riwayat
+import 'riwayat_page.dart'; // Import halaman Riwayat
 
 class PeminjamanForm extends StatefulWidget {
   const PeminjamanForm({super.key});
@@ -17,6 +20,8 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
   final _jamMulaiController = TextEditingController();
   final _jamSelesaiController = TextEditingController();
   final _jumlahPesertaController = TextEditingController();
+  final _nomorHpController =
+      TextEditingController(); // Controller untuk Nomor HP/WA
   String? _selectedRuangan;
   String? _selectedTandaPengenal;
   bool _agree = false;
@@ -43,26 +48,39 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
     _jamMulaiController.dispose();
     _jamSelesaiController.dispose();
     _jumlahPesertaController.dispose();
+    _nomorHpController.dispose(); // Dispose untuk Nomor HP/WA
     super.dispose();
   }
 
   void _navigateToConfirmation() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ConfirmationScreen(
-          namaLengkap: _namaLengkapController.text,
-          nimNikNip: _nimNikNipController.text,
-          namaDosen: _namaDosenController.text,
-          tanggal: _tanggalController.text,
-          jamMulai: _jamMulaiController.text,
-          jamSelesai: _jamSelesaiController.text,
-          jumlahPeserta: _jumlahPesertaController.text,
-          selectedRuangan: _selectedRuangan,
-          selectedTandaPengenal: _selectedTandaPengenal,
+    if (_formKey.currentState!.validate()) {
+      // Buat objek Riwayat
+      Riwayat riwayat = Riwayat(
+        id: null, // ID akan diatur oleh database
+        namaLengkap: _namaLengkapController.text,
+        nim: _nimNikNipController.text,
+        namaDosen: _namaDosenController.text,
+        tanggal: _tanggalController.text,
+        jamMulai: _jamMulaiController.text,
+        jamSelesai: _jamSelesaiController.text,
+        jumlahPeserta: int.parse(_jumlahPesertaController.text),
+        ruangan: _selectedRuangan!,
+        tandaPengenal: _selectedTandaPengenal!,
+        nomorHp: _nomorHpController.text, // Menyimpan Nomor HP/WA
+        persetujuan: 'Belum Disetujui', // Default ke 'Belum Disetujui'
+      );
+
+      // Navigasi ke halaman konfirmasi dengan objek Riwayat
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ConfirmationScreen(
+            riwayat: riwayat,
+            autoNavigate: true, // Set autoNavigate jika ingin otomatis
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -100,13 +118,11 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                           const InputDecoration(labelText: 'Nama Lengkap'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Nama lengkap tidak boleh kosong';
+                          return 'Nama Lengkap tidak boleh kosong';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
                     // NIM/NIK/NIP
                     TextFormField(
                       controller: _nimNikNipController,
@@ -119,8 +135,6 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
                     // Nama Dosen
                     TextFormField(
                       controller: _namaDosenController,
@@ -128,18 +142,16 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                           const InputDecoration(labelText: 'Nama Dosen'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Nama dosen tidak boleh kosong';
+                          return 'Nama Dosen tidak boleh kosong';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
                     // Tanggal
                     TextFormField(
                       controller: _tanggalController,
                       decoration: const InputDecoration(labelText: 'Tanggal'),
-                      readOnly: true,
+                      readOnly: true, // Membuat field ini read-only
                       onTap: () async {
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
@@ -149,8 +161,8 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                         );
                         if (pickedDate != null) {
                           setState(() {
-                            _tanggalController.text =
-                                "${pickedDate.toLocal()}".split(' ')[0];
+                            _tanggalController.text = "${pickedDate.toLocal()}"
+                                .split(' ')[0]; // Format tanggal
                           });
                         }
                       },
@@ -161,38 +173,29 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
                     // Jam Mulai
                     TextFormField(
                       controller: _jamMulaiController,
-                      decoration:
-                          const InputDecoration(labelText: 'Jam Mulai (HH:MM)'),
-                      keyboardType: TextInputType.datetime,
+                      decoration: const InputDecoration(labelText: 'Jam Mulai'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Jam mulai tidak boleh kosong';
+                          return 'Jam Mulai tidak boleh kosong';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
                     // Jam Selesai
                     TextFormField(
                       controller: _jamSelesaiController,
-                      decoration: const InputDecoration(
-                          labelText: 'Jam Selesai (HH:MM)'),
-                      keyboardType: TextInputType.datetime,
+                      decoration:
+                          const InputDecoration(labelText: 'Jam Selesai'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Jam selesai tidak boleh kosong';
+                          return 'Jam Selesai tidak boleh kosong';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
                     // Jumlah Peserta
                     TextFormField(
                       controller: _jumlahPesertaController,
@@ -201,68 +204,62 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Jumlah peserta tidak boleh kosong';
+                          return 'Jumlah Peserta tidak boleh kosong';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
-                    // Nama Ruangan
+                    // Ruangan
                     DropdownButtonFormField<String>(
-                      value: _selectedRuangan,
                       decoration:
                           const InputDecoration(labelText: 'Nama Ruangan'),
+                      value: _selectedRuangan,
                       items: _ruanganList.map((String ruangan) {
                         return DropdownMenuItem<String>(
                           value: ruangan,
                           child: Text(ruangan),
                         );
                       }).toList(),
-                      onChanged: (String? newValue) {
+                      onChanged: (value) {
                         setState(() {
-                          _selectedRuangan = newValue;
+                          _selectedRuangan = value;
                         });
                       },
                       validator: (value) {
                         if (value == null) {
-                          return 'Nama ruangan harus dipilih';
+                          return 'Silakan pilih ruangan';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
                     // Tanda Pengenal
                     DropdownButtonFormField<String>(
-                      value: _selectedTandaPengenal,
                       decoration:
                           const InputDecoration(labelText: 'Tanda Pengenal'),
-                      items: _tandaPengenalList.map((String tanda) {
+                      value: _selectedTandaPengenal,
+                      items: _tandaPengenalList.map((String tandaPengenal) {
                         return DropdownMenuItem<String>(
-                          value: tanda,
-                          child: Text(tanda),
+                          value: tandaPengenal,
+                          child: Text(tandaPengenal),
                         );
                       }).toList(),
-                      onChanged: (String? newValue) {
+                      onChanged: (value) {
                         setState(() {
-                          _selectedTandaPengenal = newValue;
+                          _selectedTandaPengenal = value;
                         });
                       },
                       validator: (value) {
                         if (value == null) {
-                          return 'Tanda pengenal harus dipilih';
+                          return 'Silakan pilih tanda pengenal';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
                     // Nomor HP/WA
                     TextFormField(
-                      controller: TextEditingController(),
+                      controller: _nomorHpController,
                       decoration:
-                          const InputDecoration(labelText: 'Nomor HP/WA Aktif'),
+                          const InputDecoration(labelText: 'Nomor HP/WA'),
                       keyboardType: TextInputType.phone,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -271,42 +268,24 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16.0),
-
-                    // Pernyataan Penggunaan Labor
+                    // Persetujuan
                     Row(
-                      children: <Widget>[
+                      children: [
                         Checkbox(
                           value: _agree,
-                          onChanged: (bool? value) {
+                          onChanged: (value) {
                             setState(() {
                               _agree = value!;
                             });
                           },
                         ),
-                        const Expanded(
-                          child: Text(
-                            'Saya memahami dan akan bertanggung jawab atas segala konsekuensi peminjaman dan sanggup menaati standar penggunaan alat dan ruangan yang berlaku.',
-                          ),
-                        ),
+                        const Text('Saya setuju dengan syarat dan ketentuan'),
                       ],
                     ),
-                    const SizedBox(height: 16.0),
-
                     // Tombol Kirim
                     ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate() && _agree) {
-                          _navigateToConfirmation();
-                        } else if (!_agree) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Anda harus menyetujui pernyataan penggunaan labor')),
-                          );
-                        }
-                      },
-                      child: const Text('KIRIM'),
+                      onPressed: _agree ? _navigateToConfirmation : null,
+                      child: const Text('Kirim'),
                     ),
                   ],
                 ),
