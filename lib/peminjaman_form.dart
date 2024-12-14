@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'confirmation_screen.dart'; // Import ConfirmationScreen
-import 'database/database_service.dart'; // Import database helper
-import 'database/riwayat.dart'; // Import model Riwayat
-import 'riwayat_page.dart'; // Import halaman Riwayat
+import 'confirmation_screen.dart'; // Mengimpor layar konfirmasi
+import 'database/database_service.dart'; // Mengimpor helper database
+import 'database/riwayat.dart'; // Mengimpor model Riwayat
+import 'database/laboratory.dart'; // Mengimpor model Laboratory
+import 'riwayat_page.dart'; // Mengimpor halaman Riwayat
 
+// Widget untuk formulir peminjaman laboratorium
 class PeminjamanForm extends StatefulWidget {
   const PeminjamanForm({super.key});
 
@@ -11,36 +13,56 @@ class PeminjamanForm extends StatefulWidget {
   _PeminjamanFormState createState() => _PeminjamanFormState();
 }
 
+// State untuk PeminjamanForm
 class _PeminjamanFormState extends State<PeminjamanForm> {
-  final _formKey = GlobalKey<FormState>();
-  final _namaLengkapController = TextEditingController();
-  final _nimNikNipController = TextEditingController();
-  final _namaDosenController = TextEditingController();
-  final _tanggalController = TextEditingController();
-  final _jamMulaiController = TextEditingController();
-  final _jamSelesaiController = TextEditingController();
-  final _jumlahPesertaController = TextEditingController();
+  final _formKey = GlobalKey<FormState>(); // Kunci untuk formulir
+  final _namaLengkapController =
+      TextEditingController(); // Kontrol untuk nama lengkap
+  final _nimNikNipController =
+      TextEditingController(); // Kontrol untuk NIM/NIK/NIP
+  final _namaDosenController =
+      TextEditingController(); // Kontrol untuk nama dosen
+  final _tanggalController = TextEditingController(); // Kontrol untuk tanggal
+  final _jamMulaiController =
+      TextEditingController(); // Kontrol untuk jam mulai
+  final _jamSelesaiController =
+      TextEditingController(); // Kontrol untuk jam selesai
+  final _jumlahPesertaController =
+      TextEditingController(); // Kontrol untuk jumlah peserta
   final _nomorHpController =
-      TextEditingController(); // Controller untuk Nomor HP/WA
-  String? _selectedRuangan;
-  String? _selectedTandaPengenal;
-  bool _agree = false;
+      TextEditingController(); // Kontrol untuk nomor HP/WA
+  String? _selectedRuangan; // Ruangan yang dipilih
+  String? _selectedTandaPengenal; // Tanda pengenal yang dipilih
+  bool _agree = false; // Status persetujuan
 
-  final List<String> _ruanganList = [
-    'Lab ICT 1',
-    'Lab ICT 2',
-    'Lab Komputasi Sains',
-    'Lab Komputasi Teknik',
-  ];
-
+  List<String> _ruanganList = []; // Daftar ruangan
   final List<String> _tandaPengenalList = [
     'KTM',
     'KTP',
     'SIM',
-  ];
+  ]; // Daftar tanda pengenal
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRuanganList(); // Mengambil daftar ruangan saat widget diinisialisasi
+  }
+
+  // Fungsi untuk mengambil daftar ruangan dari database
+  Future<void> _fetchRuanganList() async {
+    DatabaseHelper dbHelper = DatabaseHelper();
+    List<Laboratory> laboratories =
+        await dbHelper.getLaboratories(); // Mengambil laboratorium
+    setState(() {
+      _ruanganList = laboratories
+          .map((lab) => lab.labName)
+          .toList(); // Mengisi daftar ruangan
+    });
+  }
 
   @override
   void dispose() {
+    // Menghapus kontrol saat widget dibuang
     _namaLengkapController.dispose();
     _nimNikNipController.dispose();
     _namaDosenController.dispose();
@@ -48,13 +70,15 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
     _jamMulaiController.dispose();
     _jamSelesaiController.dispose();
     _jumlahPesertaController.dispose();
-    _nomorHpController.dispose(); // Dispose untuk Nomor HP/WA
+    _nomorHpController.dispose(); // Menghapus kontrol untuk nomor HP/WA
     super.dispose();
   }
 
+  // Fungsi untuk menavigasi ke layar konfirmasi
   void _navigateToConfirmation() {
     if (_formKey.currentState!.validate()) {
-      // Buat objek Riwayat
+      // Memeriksa validitas formulir
+      // Membuat objek Riwayat
       Riwayat riwayat = Riwayat(
         id: null, // ID akan diatur oleh database
         namaLengkap: _namaLengkapController.text,
@@ -66,7 +90,7 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
         jumlahPeserta: int.parse(_jumlahPesertaController.text),
         ruangan: _selectedRuangan!,
         tandaPengenal: _selectedTandaPengenal!,
-        nomorHp: _nomorHpController.text, // Menyimpan Nomor HP/WA
+        nomorHp: _nomorHpController.text, // Menyimpan nomor HP/WA
         persetujuan: 'Belum Disetujui', // Default ke 'Belum Disetujui'
       );
 
@@ -83,16 +107,33 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
     }
   }
 
+  // Widget untuk membuat TextFormField dengan validasi
+  Widget formText(dynamic _cont, String label) {
+    return TextFormField(
+      controller: _cont,
+      decoration: InputDecoration(labelText: label),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return '$label tidak boleh kosong';
+        }
+        return null;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Form Peminjaman Laboratorium'),
+        title: const Text('Form Peminjaman Laboratorium'), // Judul aplikasi
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.lightBlue],
+            colors: [
+              Colors.blueAccent,
+              Colors.lightBlue
+            ], // Gradient latar belakang
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -102,52 +143,22 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
             padding: const EdgeInsets.all(16.0),
             margin: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(10.0),
+              color: Colors.grey[200], // Warna latar belakang formulir
+              borderRadius: BorderRadius.circular(10.0), // Sudut melengkung
             ),
             child: Form(
-              key: _formKey,
+              key: _formKey, // Kunci formulir
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    // Nama Lengkap
-                    TextFormField(
-                      controller: _namaLengkapController,
-                      decoration:
-                          const InputDecoration(labelText: 'Nama Lengkap'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nama Lengkap tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    // NIM/NIK/NIP
-                    TextFormField(
-                      controller: _nimNikNipController,
-                      decoration:
-                          const InputDecoration(labelText: 'NIM/NIK/NIP'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'NIM/NIK/NIP tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    // Nama Dosen
-                    TextFormField(
-                      controller: _namaDosenController,
-                      decoration:
-                          const InputDecoration(labelText: 'Nama Dosen'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nama Dosen tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    // Tanggal
+                    // Input untuk Nama Lengkap
+                    formText(_namaLengkapController, "Nama Lengkap"),
+                    // Input untuk NIM/NIK/NIP
+                    formText(_nimNikNipController, "NIM/NIK/NIP"),
+                    // Input untuk Nama Dosen
+                    formText(_namaDosenController, "Nama Dosen"),
+                    // Input untuk Tanggal
                     TextFormField(
                       controller: _tanggalController,
                       decoration: const InputDecoration(labelText: 'Tanggal'),
@@ -173,30 +184,11 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                         return null;
                       },
                     ),
-                    // Jam Mulai
-                    TextFormField(
-                      controller: _jamMulaiController,
-                      decoration: const InputDecoration(labelText: 'Jam Mulai'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Jam Mulai tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    // Jam Selesai
-                    TextFormField(
-                      controller: _jamSelesaiController,
-                      decoration:
-                          const InputDecoration(labelText: 'Jam Selesai'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Jam Selesai tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    // Jumlah Peserta
+                    // Input untuk Jam Mulai
+                    formText(_jamMulaiController, "Jam Mulai"),
+                    // Input untuk Jam Selesai
+                    formText(_jamSelesaiController, "Jam Selesai"),
+                    // Input untuk Jumlah Peserta
                     TextFormField(
                       controller: _jumlahPesertaController,
                       decoration:
@@ -209,7 +201,7 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                         return null;
                       },
                     ),
-                    // Ruangan
+                    // Dropdown untuk Ruangan
                     DropdownButtonFormField<String>(
                       decoration:
                           const InputDecoration(labelText: 'Nama Ruangan'),
@@ -232,7 +224,7 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                         return null;
                       },
                     ),
-                    // Tanda Pengenal
+                    // Dropdown untuk Tanda Pengenal
                     DropdownButtonFormField<String>(
                       decoration:
                           const InputDecoration(labelText: 'Tanda Pengenal'),
@@ -255,20 +247,9 @@ class _PeminjamanFormState extends State<PeminjamanForm> {
                         return null;
                       },
                     ),
-                    // Nomor HP/WA
-                    TextFormField(
-                      controller: _nomorHpController,
-                      decoration:
-                          const InputDecoration(labelText: 'Nomor HP/WA'),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nomor HP/WA tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
-                    // Persetujuan
+                    // Input untuk Nomor HP/WA
+                    formText(_nomorHpController, "Nomor HP/WA"),
+                    // Checkbox untuk persetujuan
                     Row(
                       children: [
                         Checkbox(

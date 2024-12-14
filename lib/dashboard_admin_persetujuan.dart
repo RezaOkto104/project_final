@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'database/riwayat.dart';
 import 'database/database_service.dart'; // Mengimpor DatabaseHelper
+import 'confirmation_screen_admin.dart'; // Import ConfirmationScreen
 
 class DashboardAdminPersetujuan extends StatefulWidget {
   const DashboardAdminPersetujuan({super.key});
@@ -48,6 +49,17 @@ class _DashboardAdminPersetujuanState extends State<DashboardAdminPersetujuan> {
     _loadRiwayatData(); // Memuat ulang data setelah update
   }
 
+  // Fungsi untuk menghapus riwayat
+  Future<void> _deleteRiwayat(int id) async {
+    await DatabaseHelper().deleteRiwayat(id);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Pengajuan berhasil dihapus'),
+      ),
+    );
+    _loadRiwayatData(); // Memuat ulang data setelah penghapusan
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +78,19 @@ class _DashboardAdminPersetujuanState extends State<DashboardAdminPersetujuan> {
               child: ListTile(
                 title: Text(riwayat.namaLengkap),
                 subtitle: Text('Status: ${riwayat.persetujuan}'),
+                onTap: () {
+                  // Navigasi ke ConfirmationScreen saat item di-tap
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConfirmationScreenAdmin(
+                        riwayat: riwayat,
+                        autoNavigate:
+                            false, // Set autoNavigate sesuai kebutuhan
+                      ),
+                    ),
+                  );
+                },
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -81,6 +106,51 @@ class _DashboardAdminPersetujuanState extends State<DashboardAdminPersetujuan> {
                       icon: const Icon(Icons.cancel, color: Colors.red),
                       onPressed: () {
                         _updatePersetujuan(riwayat, 'Tidak Disetujui');
+                      },
+                    ),
+                    // Tombol Hapus
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        // Konfirmasi sebelum menghapus
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('Konfirmasi Hapus'),
+                              content: const Text(
+                                  'Apakah Anda yakin ingin menghapus pengajuan ini?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Tutup dialog
+                                  },
+                                  child: const Text('Batal'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    if (riwayat.id != null) {
+                                      // Check if id is not null
+                                      _deleteRiwayat(
+                                          riwayat.id!); // Hapus riwayat
+                                    } else {
+                                      // Handle the case where id is null
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content:
+                                              Text('ID pengajuan tidak valid.'),
+                                        ),
+                                      );
+                                    }
+                                    Navigator.of(context).pop(); // Tutup dialog
+                                  },
+                                  child: const Text('Hapus'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
                       },
                     ),
                   ],

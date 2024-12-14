@@ -4,26 +4,30 @@ import 'riwayat.dart';
 import 'laboratory.dart';
 
 class DatabaseHelper {
+  // Pola Singleton untuk memastikan hanya ada satu instance DatabaseHelper
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   factory DatabaseHelper() => _instance;
 
-  static Database? _database;
+  static Database? _database; // Instance database privat
 
-  DatabaseHelper._internal();
+  DatabaseHelper._internal(); // Konstruktor privat
 
+  // Getter untuk instance database, menginisialisasi jika belum ada
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDatabase();
+    _database = await _initDatabase(); // Inisialisasi database
     return _database!;
   }
 
+  // Metode untuk menginisialisasi database dan membuat tabel
   Future<Database> _initDatabase() async {
+    // Mendapatkan path ke database
     String path = join(await getDatabasesPath(), 'app_database.db');
     return await openDatabase(
       path,
-      version: 4, // Increment version number to reflect the new column
+      version: 4, // Tingkatkan nomor versi untuk mencerminkan kolom baru
       onCreate: (db, version) async {
-        // Membuat tabel riwayat
+        // Membuat tabel 'riwayat'
         await db.execute(
           '''
           CREATE TABLE riwayat(
@@ -43,7 +47,7 @@ class DatabaseHelper {
           ''',
         );
 
-        // Membuat tabel laboratories
+        // Membuat tabel 'laboratories'
         await db.execute(
           '''
           CREATE TABLE laboratories (
@@ -57,9 +61,11 @@ class DatabaseHelper {
         );
       },
       onUpgrade: (db, oldVersion, newVersion) async {
+        // Mengupgrade database jika versi lama lebih rendah dari 2
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE riwayat ADD COLUMN nomor_hp TEXT');
         }
+        // Mengupgrade database jika versi lama lebih rendah dari 3
         if (oldVersion < 3) {
           await db.execute(
             '''
@@ -72,6 +78,7 @@ class DatabaseHelper {
             ''',
           );
         }
+        // Mengupgrade database jika versi lama lebih rendah dari 4
         if (oldVersion < 4) {
           // Tambahkan kolom max_facilities di versi 4
           await db.execute(

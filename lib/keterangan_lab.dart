@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
-import 'peminjaman_form.dart'; // Pastikan untuk mengimpor file ini
+import 'database/database_service.dart';
+import 'peminjaman_form.dart'; // Mengimpor file PeminjamanForm untuk navigasi
+import 'database/laboratory.dart'; // Mengimpor model Laboratory
 
+// Widget untuk menampilkan informasi tentang laboratorium
 class LabInfoScreen extends StatelessWidget {
-  final String labName;
-  final String status;
-  final bool isAvailable;
+  final Laboratory lab; // Menerima objek Laboratory
 
   const LabInfoScreen({
     super.key,
-    required this.labName,
-    required this.status,
-    required this.isAvailable,
+    required this.lab, // Mengharuskan lab untuk diisi
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Informasi Lab'),
+        title: const Text('Informasi Lab'), // Judul AppBar
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back), // Ikon kembali
           onPressed: () {
             Navigator.pop(context); // Kembali ke layar sebelumnya
           },
         ),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blueAccent, // Warna latar belakang AppBar
       ),
       body: SafeArea(
         child: Container(
@@ -32,104 +31,122 @@ class LabInfoScreen extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.blueAccent, Colors.white],
+              colors: [
+                Colors.blueAccent,
+                Colors.white
+              ], // Gradien latar belakang
             ),
           ),
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 20), // Jarak atas
               Text(
-                labName, // Menampilkan nama lab yang diterima
+                lab.labName, // Menampilkan nama lab yang diterima
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.black, // Warna teks nama lab
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 20), // Jarak antara nama lab dan gambar
               // Gambar Lab
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 20), // Margin horizontal
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12), // Sudut melengkung
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withOpacity(0.2), // Bayangan
                       blurRadius: 5,
-                      offset: const Offset(0, 5),
+                      offset: const Offset(0, 5), // Posisi bayangan
                     ),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                      12), // Sudut melengkung untuk gambar
                   child: Image.asset(
                     'assets/lab.jpeg', // Pastikan gambar Anda di folder assets
-                    fit: BoxFit.cover,
-                    height: 200,
-                    width: double.infinity,
+                    fit: BoxFit
+                        .cover, // Mengatur gambar agar sesuai dengan kontainer
+                    height: 200, // Tinggi gambar
+                    width: double.infinity, // Lebar gambar
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(
+                  height: 20), // Jarak antara gambar dan informasi lab
               // Informasi Lab
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(
+                    horizontal: 20), // Margin horizontal
+                padding: const EdgeInsets.all(16), // Padding di dalam kontainer
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white, // Warna latar belakang informasi lab
+                  borderRadius: BorderRadius.circular(12), // Sudut melengkung
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withOpacity(0.1), // Bayangan
                       blurRadius: 5,
-                      offset: const Offset(0, 5),
+                      offset: const Offset(0, 5), // Posisi bayangan
                     ),
                   ],
                 ),
                 child: Column(
                   children: [
-                    const InfoRow(
-                      title: 'Jumlah Maksimal Peserta',
-                      value: '35', // Ganti dengan data yang sesuai jika ada
-                    ),
-                    const SizedBox(height: 10),
-                    const InfoRow(
-                      title: 'Jumlah fasilitas',
-                      value: '35', // Ganti dengan data yang sesuai jika ada
-                    ),
-                    const SizedBox(height: 10),
                     InfoRow(
-                      title: 'Status ketersediaan',
-                      value: isAvailable ? 'Tersedia' : 'Dipakai',
-                      valueColor: isAvailable ? Colors.green : Colors.red,
+                      title: 'Jumlah Maksimal Peserta', // Judul informasi
+                      value: lab.maxCapacity.toString(), // Data dari lab
+                    ),
+                    const SizedBox(height: 10), // Jarak antar informasi
+                    InfoRow(
+                      title: 'Jumlah fasilitas', // Judul informasi
+                      value: lab.maxFacilities.toString(), // Data dari lab
+                    ),
+                    const SizedBox(height: 10), // Jarak antar informasi
+                    InfoRow(
+                      title: 'Status ketersediaan', // Judul informasi
+                      value: lab.status == 1
+                          ? 'Tersedia'
+                          : 'Dipakai', // Status lab
+                      valueColor: lab.status == 1
+                          ? Colors.green
+                          : Colors.red, // Warna status
                     ),
                   ],
                 ),
               ),
-              const Spacer(),
+              const Spacer(), // Mengisi ruang kosong
               // Tombol Konfirmasi
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding:
+                    const EdgeInsets.all(20.0), // Padding di sekitar tombol
                 child: ElevatedButton(
                   onPressed: () {
                     // Navigasi ke PeminjamanForm
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const PeminjamanForm(),
+                        builder: (context) =>
+                            const PeminjamanForm(), // Mengarahkan ke PeminjamanForm
                       ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    minimumSize: const Size(double.infinity, 50),
+                    backgroundColor:
+                        Colors.green, // Warna latar belakang tombol
+                    minimumSize: const Size(
+                        double.infinity, 50), // Ukuran minimum tombol
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius:
+                          BorderRadius.circular(10), // Sudut melengkung tombol
                     ),
                   ),
                   child: const Text(
-                    'Konfirmasi',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
+                    'Konfirmasi', // Teks tombol
+                    style: TextStyle(
+                        fontSize: 18, color: Colors.white), // Gaya teks tombol
                   ),
                 ),
               ),
@@ -141,32 +158,35 @@ class LabInfoScreen extends StatelessWidget {
   }
 }
 
+// Widget untuk menampilkan baris informasi
 class InfoRow extends StatelessWidget {
-  final String title;
-  final String value;
-  final Color valueColor;
+  final String title; // Judul informasi
+  final String value; // Nilai informasi
+  final Color valueColor; // Warna nilai informasi
 
   const InfoRow({
     super.key,
-    required this.title,
-    required this.value,
-    this.valueColor = Colors.black,
+    required this.title, // Mengharuskan title untuk diisi
+    required this.value, // Mengharuskan value untuk diisi
+    this.valueColor = Colors.black, // Warna default untuk nilai
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment:
+          MainAxisAlignment.spaceBetween, // Mengatur posisi judul dan nilai
       children: [
         Text(
-          title,
-          style: const TextStyle(fontSize: 16, color: Colors.black),
+          title, // Menampilkan judul
+          style: const TextStyle(
+              fontSize: 16, color: Colors.black), // Gaya teks judul
         ),
         Text(
-          value,
+          value, // Menampilkan nilai
           style: TextStyle(
             fontSize: 16,
-            color: valueColor,
+            color: valueColor, // Mengatur warna nilai
           ),
         ),
       ],

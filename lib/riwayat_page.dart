@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'database/database_service.dart'; // Import DatabaseHelper
-import 'database/riwayat.dart'; // Import Riwayat model
-import 'confirmation_screen.dart'; // Import halaman rincian pengajuan
+import 'database/database_service.dart'; // Mengimpor DatabaseHelper
+import 'database/riwayat.dart'; // Mengimpor model Riwayat
+import 'confirmation_screen.dart'; // Mengimpor halaman rincian pengajuan
 
+// Widget untuk menampilkan riwayat peminjaman
 class RiwayatPage extends StatefulWidget {
   const RiwayatPage({Key? key}) : super(key: key);
 
@@ -10,19 +11,23 @@ class RiwayatPage extends StatefulWidget {
   State<RiwayatPage> createState() => _RiwayatPageState();
 }
 
+// State untuk RiwayatPage
 class _RiwayatPageState extends State<RiwayatPage> {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-  late Future<List<Riwayat>> _riwayatFuture;
-  Map<String, List<Riwayat>> _groupedRiwayat = {};
+  final DatabaseHelper _dbHelper =
+      DatabaseHelper(); // Instance dari DatabaseHelper
+  late Future<List<Riwayat>> _riwayatFuture; // Future untuk daftar riwayat
+  Map<String, List<Riwayat>> _groupedRiwayat =
+      {}; // Map untuk mengelompokkan riwayat berdasarkan tanggal
 
   @override
   void initState() {
     super.initState();
-    _loadRiwayat();
+    _loadRiwayat(); // Memuat riwayat saat widget diinisialisasi
   }
 
+  // Fungsi untuk memuat riwayat dari database
   void _loadRiwayat() {
-    _riwayatFuture = _dbHelper.getRiwayat();
+    _riwayatFuture = _dbHelper.getRiwayat(); // Mengambil riwayat dari database
     _riwayatFuture.then((riwayatList) {
       setState(() {
         // Mengelompokkan data berdasarkan tanggal
@@ -31,43 +36,48 @@ class _RiwayatPageState extends State<RiwayatPage> {
     });
   }
 
+  // Fungsi untuk mengelompokkan riwayat berdasarkan tanggal
   Map<String, List<Riwayat>> _groupRiwayatByDate(List<Riwayat> riwayatList) {
     final Map<String, List<Riwayat>> grouped = {};
     for (final riwayat in riwayatList) {
       if (!grouped.containsKey(riwayat.tanggal)) {
-        grouped[riwayat.tanggal] = [];
+        grouped[riwayat.tanggal] =
+            []; // Inisialisasi list jika tanggal belum ada
       }
-      grouped[riwayat.tanggal]!.add(riwayat);
+      grouped[riwayat.tanggal]!.add(
+          riwayat); // Menambahkan riwayat ke dalam list berdasarkan tanggal
     }
-    return grouped;
+    return grouped; // Mengembalikan map yang dikelompokkan
   }
 
+  // Fungsi untuk menghapus riwayat
   Future<void> _deleteRiwayat(int id) async {
-    await _dbHelper.deleteRiwayat(id);
+    await _dbHelper.deleteRiwayat(id); // Menghapus riwayat dari database
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Pengajuan berhasil dihapus'),
+        content: Text(
+            'Pengajuan berhasil dihapus'), // Menampilkan snackbar setelah penghapusan
       ),
     );
-    _loadRiwayat(); // Perbarui tampilan
+    _loadRiwayat(); // Memperbarui tampilan setelah penghapusan
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Riwayat Peminjaman'),
+        title: const Text('Riwayat Peminjaman'), // Judul halaman
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back), // Ikon kembali
           onPressed: () {
             Navigator.pushNamedAndRemoveUntil(
               context,
-              '/dashboard',
+              '/dashboard', // Navigasi kembali ke dashboard
               (route) => false,
             );
           },
         ),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blueAccent, // Warna latar belakang AppBar
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -75,32 +85,43 @@ class _RiwayatPageState extends State<RiwayatPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFB2D0FF),
+              Color(0xFFB2D0FF), // Warna gradien
               Color(0xFFDEE9FF),
             ],
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0), // Padding di sekitar konten
             child: FutureBuilder<List<Riwayat>>(
-              future: _riwayatFuture,
+              future:
+                  _riwayatFuture, // Menggunakan FutureBuilder untuk menampilkan data
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                      child:
+                          CircularProgressIndicator()); // Menampilkan indikator loading
                 } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(
+                      child: Text(
+                          'Error: ${snapshot.error}')); // Menampilkan pesan error
                 } else if (_groupedRiwayat.isEmpty) {
                   return const Center(
-                    child: Text('Tidak ada riwayat peminjaman.'),
+                    child: Text(
+                        'Tidak ada riwayat peminjaman.'), // Pesan jika tidak ada riwayat
                   );
                 }
 
                 return ListView.builder(
-                  itemCount: _groupedRiwayat.keys.length,
+                  itemCount: _groupedRiwayat.keys
+                      .length, // Menghitung jumlah tanggal yang dikelompokkan
                   itemBuilder: (context, index) {
-                    final date = _groupedRiwayat.keys.toList()[index];
-                    final riwayatList = _groupedRiwayat[date]!;
+                    final date = _groupedRiwayat.keys
+                        .toList()
+                        .reversed
+                        .toList()[index]; // Membalik urutan tanggal
+                    final riwayatList = _groupedRiwayat[
+                        date]!; // Mengambil daftar riwayat untuk tanggal tertentu
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,6 +143,7 @@ class _RiwayatPageState extends State<RiwayatPage> {
                           Color iconColor;
                           String statusText;
 
+                          // Menentukan ikon dan warna berdasarkan status persetujuan
                           if (riwayat.persetujuan == 'Disetujui') {
                             icon = Icons.check_circle;
                             iconColor = Colors.green;
@@ -177,6 +199,7 @@ class _RiwayatPageState extends State<RiwayatPage> {
     );
   }
 
+  // Widget untuk membangun item riwayat
   Widget buildRiwayatItem({
     required String waktu,
     required String nama,

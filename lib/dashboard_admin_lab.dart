@@ -1,97 +1,118 @@
-import 'package:flutter/material.dart';
-import 'database/database_service.dart';
-import 'database/laboratory.dart';
+import 'package:flutter/material.dart'; // Mengimpor paket Flutter untuk antarmuka pengguna
+import 'database/database_service.dart'; // Mengimpor layanan database
+import 'database/laboratory.dart'; // Mengimpor model Laboratory
 
+// Widget utama untuk dashboard admin laboratorium
 class DashboardAdminLab extends StatefulWidget {
-  const DashboardAdminLab({Key? key}) : super(key: key);
+  const DashboardAdminLab({Key? key})
+      : super(key: key); // Konstruktor untuk widget
 
   @override
-  _DashboardAdminState createState() => _DashboardAdminState();
+  _DashboardAdminState createState() =>
+      _DashboardAdminState(); // Membuat state untuk widget
 }
 
+// State untuk DashboardAdminLab
 class _DashboardAdminState extends State<DashboardAdminLab> {
-  final _labNameController = TextEditingController();
-  final _maxCapacityController = TextEditingController();
-  final _maxFacilitiesController = TextEditingController();
-  int _status = 0; // Default to "Not Available" status
+  // Controller untuk input teks
+  final _labNameController =
+      TextEditingController(); // Controller untuk nama laboratorium
+  final _maxCapacityController =
+      TextEditingController(); // Controller untuk kapasitas maksimal
+  final _maxFacilitiesController =
+      TextEditingController(); // Controller untuk jumlah fasilitas maksimal
+  int _status = 0; // Status default "Tidak Tersedia"
 
-  late Future<List<Laboratory>> _laboratoriesFuture;
+  late Future<List<Laboratory>>
+      _laboratoriesFuture; // Future untuk daftar laboratorium
 
   @override
   void initState() {
-    super.initState();
-    _refreshLaboratories();
+    super.initState(); // Memanggil inisialisasi dari superclass
+    _refreshLaboratories(); // Memuat ulang daftar laboratorium saat inisialisasi
   }
 
-  // Refresh list of laboratories
+  // Fungsi untuk memuat ulang daftar laboratorium
   void _refreshLaboratories() {
-    _laboratoriesFuture = DatabaseHelper().getLaboratories();
-    setState(() {});
+    _laboratoriesFuture = DatabaseHelper()
+        .getLaboratories(); // Mengambil data laboratorium dari database
+    setState(() {}); // Memperbarui tampilan
   }
 
-  // Menambah laboratorium ke dalam database
+  // Fungsi untuk menambah laboratorium ke dalam database
   Future<void> _addLaboratory() async {
-    final labName = _labNameController.text;
-    final maxCapacity = int.tryParse(_maxCapacityController.text) ?? 0;
-    final maxFacilities = int.tryParse(_maxFacilitiesController.text) ?? 0;
+    final labName =
+        _labNameController.text; // Mengambil nama laboratorium dari input
+    final maxCapacity = int.tryParse(_maxCapacityController.text) ??
+        0; // Mengambil kapasitas maksimal
+    final maxFacilities = int.tryParse(_maxFacilitiesController.text) ??
+        0; // Mengambil jumlah fasilitas maksimal
 
+    // Validasi input
     if (labName.isEmpty || maxCapacity <= 0 || maxFacilities <= 0) {
-      return; // Menangani kesalahan jika data kosong
+      return; // Menghentikan eksekusi jika input tidak valid
     }
 
+    // Membuat objek Laboratory baru
     final laboratory = Laboratory(
-      id: 0, // ID akan dibuat otomatis di database
+      id: null, // ID akan dibuat otomatis di database
       labName: labName,
       maxCapacity: maxCapacity,
       maxFacilities: maxFacilities,
       status: _status,
     );
 
-    await DatabaseHelper().insertLaboratory(laboratory);
+    await DatabaseHelper()
+        .insertLaboratory(laboratory); // Menyimpan laboratorium ke database
 
-    // Reset form
+    // Reset form input
     _labNameController.clear();
     _maxCapacityController.clear();
     _maxFacilitiesController.clear();
 
-    _refreshLaboratories(); // Refresh data
-    Navigator.pop(context);
+    _refreshLaboratories(); // Memperbarui daftar laboratorium
+    Navigator.pop(context); // Menutup dialog
   }
 
-  // Menghapus laboratorium
+  // Fungsi untuk menghapus laboratorium
   Future<void> _deleteLaboratory(int id) async {
-    await DatabaseHelper().deleteLaboratory(id);
-    _refreshLaboratories(); // Refresh data setelah penghapusan
+    await DatabaseHelper()
+        .deleteLaboratory(id); // Menghapus laboratorium dari database
+    _refreshLaboratories(); // Memperbarui daftar laboratorium setelah penghapusan
   }
 
-  // Dialog untuk menambah laboratorium
+  // Fungsi untuk menampilkan dialog tambah laboratorium
   void _showAddLabDialog() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Tambah Laboratorium'),
+          title: const Text('Tambah Laboratorium'), // Judul dialog
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Input untuk nama laboratorium
                 TextField(
                   controller: _labNameController,
                   decoration:
                       const InputDecoration(labelText: 'Nama Laboratorium'),
                 ),
+                // Input untuk kapasitas maksimal
                 TextField(
                   controller: _maxCapacityController,
                   keyboardType: TextInputType.number,
                   decoration:
                       const InputDecoration(labelText: 'Kapasitas Maksimal'),
                 ),
+                // Input untuk jumlah fasilitas maksimal
                 TextField(
                   controller: _maxFacilitiesController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                       labelText: 'Jumlah Fasilitas Maksimal'),
                 ),
+                // Pilihan status laboratorium
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -99,6 +120,7 @@ class _DashboardAdminState extends State<DashboardAdminLab> {
                     Flexible(
                       child: Column(
                         children: [
+                          // Radio button untuk status "Tersedia"
                           RadioListTile<int>(
                             title: const Text('Tersedia'),
                             value: 1,
@@ -109,6 +131,7 @@ class _DashboardAdminState extends State<DashboardAdminLab> {
                               });
                             },
                           ),
+                          // Radio button untuk status "Tidak Tersedia"
                           RadioListTile<int>(
                             title: const Text('Tidak Tersedia'),
                             value: 0,
@@ -128,10 +151,12 @@ class _DashboardAdminState extends State<DashboardAdminLab> {
             ),
           ),
           actions: [
+            // Tombol untuk membatalkan dialog
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Batal'),
             ),
+            // Tombol untuk menambah laboratorium
             ElevatedButton(
               onPressed: _addLaboratory,
               child: const Text('Tambah'),
@@ -142,66 +167,84 @@ class _DashboardAdminState extends State<DashboardAdminLab> {
     );
   }
 
-  // Mengedit status ketersediaan
+  // Fungsi untuk mengedit status ketersediaan laboratorium
   void _editStatus(Laboratory lab) async {
-    final newStatus = lab.status == 1 ? 0 : 1;
-    final updatedLab = lab.copyWith(status: newStatus);
-    await DatabaseHelper().updateLaboratory(updatedLab);
-    _refreshLaboratories(); // Refresh data
+    final newStatus =
+        lab.status == 1 ? 0 : 1; // Mengubah status menjadi sebaliknya
+    final updatedLab = lab.copyWith(
+        status: newStatus); // Membuat salinan laboratorium dengan status baru
+    await DatabaseHelper()
+        .updateLaboratory(updatedLab); // Memperbarui laboratorium di database
+    _refreshLaboratories(); // Memperbarui daftar laboratorium
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard Admin'),
-        backgroundColor: const Color(0xFF8A4AFF),
+        title: const Text('Dashboard Admin'), // Judul aplikasi
+        backgroundColor: const Color(0xFF8A4AFF), // Warna latar belakang AppBar
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0), // Padding di sekitar konten
         child: Column(
           children: [
             Expanded(
               child: FutureBuilder<List<Laboratory>>(
-                future: _laboratoriesFuture,
+                future: _laboratoriesFuture, // Mengambil data laboratorium
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                        child:
+                            CircularProgressIndicator()); // Menampilkan loading saat menunggu data
                   }
 
                   if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(
+                        child: Text(
+                            'Error: ${snapshot.error}')); // Menampilkan pesan error jika ada
                   }
 
-                  final laboratories = snapshot.data;
+                  final laboratories =
+                      snapshot.data; // Data laboratorium yang diambil
 
                   if (laboratories == null || laboratories.isEmpty) {
-                    return const Center(child: Text('Tidak ada laboratorium.'));
+                    return const Center(
+                        child: Text(
+                            'Tidak ada laboratorium.')); // Menampilkan pesan jika tidak ada laboratorium
                   }
 
                   return ListView.builder(
-                    itemCount: laboratories.length,
+                    itemCount: laboratories.length, // Jumlah laboratorium
                     itemBuilder: (context, index) {
-                      final lab = laboratories[index];
+                      final lab = laboratories[
+                          index]; // Mengambil laboratorium berdasarkan index
                       return Card(
-                        elevation: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        elevation: 4, // Elevasi untuk efek bayangan
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8), // Margin antara card
                         child: ListTile(
                           title: Text(
                             lab.labName,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontWeight: FontWeight
+                                    .bold), // Menebalkan nama laboratorium
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Kapasitas: ${lab.maxCapacity}'),
-                              Text('Fasilitas Maks: ${lab.maxFacilities}'),
                               Text(
-                                'Status: ${lab.status == 1 ? "Tersedia" : "Tidak Tersedia"}',
+                                  'Kapasitas: ${lab.maxCapacity}'), // Menampilkan kapasitas laboratorium
+                              Text(
+                                  'Fasilitas Maks: ${lab.maxFacilities}'), // Menampilkan jumlah fasilitas
+                              Text(
+                                'Status: ${lab.status == 1 ? "Tersedia" : "Tidak Tersedia"}', // Menampilkan status laboratorium
                                 style: TextStyle(
                                   color: lab.status == 1
-                                      ? Colors.green
-                                      : Colors.red,
+                                      ? Colors
+                                          .green // Warna hijau jika tersedia
+                                      : Colors
+                                          .red, // Warna merah jika tidak tersedia
                                 ),
                               ),
                             ],
@@ -209,21 +252,33 @@ class _DashboardAdminState extends State<DashboardAdminLab> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // Tombol untuk mengedit status laboratorium
                               IconButton(
                                 icon: Icon(
                                   lab.status == 1
-                                      ? Icons.toggle_on
-                                      : Icons.toggle_off,
+                                      ? Icons
+                                          .toggle_on // Ikon untuk status tersedia
+                                      : Icons
+                                          .toggle_off, // Ikon untuk status tidak tersedia
                                   color: lab.status == 1
-                                      ? Colors.green
-                                      : Colors.grey,
+                                      ? Colors
+                                          .green // Warna hijau jika tersedia
+                                      : Colors
+                                          .grey, // Warna abu-abu jika tidak tersedia
                                 ),
-                                onPressed: () => _editStatus(lab),
+                                onPressed: () => _editStatus(
+                                    lab), // Memanggil fungsi untuk mengedit status
                               ),
+                              // Tombol untuk menghapus laboratorium
                               IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteLaboratory(lab.id),
+                                icon: const Icon(Icons.delete,
+                                    color: Colors.red), // Ikon hapus
+                                onPressed: () {
+                                  if (lab.id != null) {
+                                    _deleteLaboratory(lab
+                                        .id!); // Menghapus laboratorium jika ID tidak null
+                                  }
+                                },
                               ),
                             ],
                           ),
@@ -234,12 +289,16 @@ class _DashboardAdminState extends State<DashboardAdminLab> {
                 },
               ),
             ),
+            // Tombol untuk menambah laboratorium
             ElevatedButton(
-              onPressed: _showAddLabDialog,
-              child: const Text('Tambah Laboratorium'),
+              onPressed:
+                  _showAddLabDialog, // Memanggil dialog untuk menambah laboratorium
+              child: const Text('Tambah Laboratorium'), // Teks tombol
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8A4AFF),
-                minimumSize: const Size(double.infinity, 50),
+                backgroundColor:
+                    const Color(0xFF8A4AFF), // Warna latar belakang tombol
+                minimumSize:
+                    const Size(double.infinity, 50), // Ukuran minimum tombol
               ),
             ),
           ],

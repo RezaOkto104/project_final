@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:project_final/dashboard_admin_persetujuan.dart';
 import 'dart:async'; // Import untuk Timer
 import 'database/database_service.dart'; // Import database helper
 import 'database/riwayat.dart'; // Import model Riwayat
 import 'riwayat_page.dart'; // Import halaman Riwayat
 
-class ConfirmationScreen extends StatefulWidget {
+class ConfirmationScreenAdmin extends StatefulWidget {
   final Riwayat riwayat; // Menerima objek Riwayat
-  final bool autoNavigate; // Tambahkan parameter untuk mode navigasi otomatis
+  final bool autoNavigate; // Parameter untuk mode navigasi otomatis
 
-  const ConfirmationScreen({
+  const ConfirmationScreenAdmin({
     Key? key,
     required this.riwayat,
     this.autoNavigate = false, // Default tidak otomatis
   }) : super(key: key);
 
   @override
-  _ConfirmationScreenState createState() => _ConfirmationScreenState();
+  _ConfirmationScreenAdminState createState() =>
+      _ConfirmationScreenAdminState();
 }
 
-class _ConfirmationScreenState extends State<ConfirmationScreen> {
-  int _countdown = 5; // Countdown hanya jika navigasi otomatis
-  Timer? _timer;
+class _ConfirmationScreenAdminState extends State<ConfirmationScreenAdmin> {
+  int _countdown = 5; // Countdown untuk navigasi otomatis
+  Timer? _timer; // Timer untuk menghitung mundur
 
   @override
   void initState() {
@@ -32,22 +34,25 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     }
   }
 
+  // Metode untuk memulai countdown
   void _startCountdown() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdown > 0) {
         setState(() {
-          _countdown--;
+          _countdown--; // Kurangi countdown setiap detik
         });
       } else {
-        _timer?.cancel();
+        _timer?.cancel(); // Hentikan timer
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const RiwayatPage()),
-        );
+          MaterialPageRoute(
+              builder: (context) => const DashboardAdminPersetujuan()),
+        ); // Navigasi ke halaman DashboardAdminPersetujuan
       }
     });
   }
 
+  // Metode untuk menyimpan data ke database
   Future<void> _saveToDatabase() async {
     final DatabaseHelper dbHelper = DatabaseHelper();
     await dbHelper
@@ -71,8 +76,9 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const RiwayatPage()),
-            );
+              MaterialPageRoute(
+                  builder: (context) => const DashboardAdminPersetujuan()),
+            ); // Navigasi kembali ke DashboardAdminPersetujuan
           },
         ),
       ),
@@ -97,6 +103,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
                     color: Colors.white),
               ),
               const SizedBox(height: 16.0),
+              // Menampilkan data peminjaman
               _buildDataRow('Nama Lengkap:', widget.riwayat.namaLengkap),
               _buildDataRow('NIM/NIK/NIP:', widget.riwayat.nim),
               _buildDataRow('Nama Dosen:', widget.riwayat.namaDosen),
@@ -109,7 +116,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
               _buildDataRow('Tanda Pengenal:', widget.riwayat.tandaPengenal),
               const SizedBox(height: 20.0),
               const Text(
-                'Terima kasih telah mengisi formulir peminjaman.',
+                'Tolong cek dengan seksama data yang diinputkan ke sistem.',
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
               const SizedBox(height: 10.0),
@@ -126,6 +133,7 @@ class _ConfirmationScreenState extends State<ConfirmationScreen> {
     );
   }
 
+  // Metode untuk membangun baris data
   Widget _buildDataRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
